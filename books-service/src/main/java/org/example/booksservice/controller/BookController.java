@@ -7,6 +7,8 @@ import org.example.booksservice.entity.Book;
 import org.example.booksservice.service.BookService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/books")
 @RequiredArgsConstructor
@@ -34,6 +36,11 @@ public class BookController {
     public BookResponse getBookByGenre(@PathVariable("genre") String genre) {
         return bookService.getBookWithGenre(genre);
     }
+    @GetMapping("/downloadedBooks/{userId}")
+    public List<BookResponse> getDownloadedBooks(@PathVariable String userId) {
+        return bookService.getDownloadedBooks(userId);
+    }
+
 
 
 

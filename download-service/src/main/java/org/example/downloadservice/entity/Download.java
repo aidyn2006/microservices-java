@@ -23,7 +23,7 @@ public class Download {
     Long id;
 
     @Column(name ="book_id")
-    Long bookid;
+    Long bookId;
     @Column(name = "user_id")
     String userId;
 

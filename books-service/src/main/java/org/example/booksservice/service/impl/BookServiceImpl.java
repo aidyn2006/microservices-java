@@ -8,13 +8,16 @@ import org.example.booksservice.dto.response.BookResponse;
 import org.example.booksservice.entity.Book;
 import org.example.booksservice.repository.BookRepository;
 import org.example.booksservice.service.BookService;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -95,5 +98,21 @@ public class BookServiceImpl implements BookService {
                 .bodyToMono(Void.class)
                 .subscribe();
     }
+    public List<BookResponse> getDownloadedBooks(String userId) {
+        List<Long> downloadedBookIds = webClient.get()
+                .uri("http://localhost:8081/api/v1/downloads/getDownloads/{userId}", userId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Long>>() {})
+                .block();
+        return getBooksByIds(downloadedBookIds);
+    }
+
+    public List<BookResponse> getBooksByIds(List<Long> bookIds) {
+        return bookRepository.findAllById(bookIds)
+                .stream()
+                .map(this::mapBookToResponse)
+                .collect(Collectors.toList());
+    }
+
 
 }
