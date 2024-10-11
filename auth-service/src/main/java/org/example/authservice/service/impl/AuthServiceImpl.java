@@ -10,6 +10,9 @@ import org.example.authservice.security.jwt.JwtService;
 import org.example.authservice.service.AuthService;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new Exception("Пользователь не найден!"));
 
         if (passwordEncoder.matches(request.getPassword(), user.getPassword()) && user.getEmail().equals(request.getEmail())) {
-            var jwtToken = jwtService.generateToken(user.getUsername());
+            var jwtToken = jwtService.generateToken(user);
             return AuthResponse.builder()
                     .accessToken(jwtToken)
                     .build();
@@ -135,6 +138,13 @@ public class AuthServiceImpl implements AuthService {
         return "Пороль успешно изменен";
     }
 
+
+    public Long getUserIdFromContext() {
+        User user=userRepository.findByEmail("houseqazaqstan1@gmail.com")
+                .orElseThrow(()->new RuntimeException("Табылмады брат"));
+        return user.getId();
+
+    }
 
 
 

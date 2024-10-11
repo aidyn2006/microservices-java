@@ -57,12 +57,11 @@ public class BookServiceImpl implements BookService {
         return bookRepository.save(newBook);
     }
 
-    public BookResponse getBookWithTitle(String title,String userId) {
+    public BookResponse getBookWithTitle(String title) {
         Book book = bookRepository.findByTitle(title)
                 .orElseThrow(() -> new IllegalArgumentException("Книга с таким названием не найдена"));
 
-        saveDownload(book.getId(), userId);
-
+        saveDownload(book.getId(), getUserId());
         return mapBookToResponse(book);
     }
 
@@ -90,14 +89,19 @@ public class BookServiceImpl implements BookService {
                 .pdfUrl(book.getPdfUrl())
                 .build();
     }
-    private void saveDownload(Long bookId,String userId){
+    private void saveDownload(Long bookId,Long userId){
         webClient.post()
-                .uri("http://localhost:8081/api/v1/downloads/{bookId}?userId={userId}",bookId,userId)
+                .uri("http://localhost:8081/api/v1/downloads/{bookId}/{userId}", bookId, userId)
                 .retrieve()
                 .bodyToMono(Void.class)
+                .doOnError(error -> {
+                    // Логирование или обработка ошибки
+                    System.out.println("Ошибка при сохранении загрузки: " + error.getMessage());
+                })
                 .subscribe();
+
     }
-    public List<BookResponse> getDownloadedBooks(String userId) {
+    public List<BookResponse> getDownloadedBooks(Long userId) {
         List<Long> downloadedBookIds = webClient.get()
                 .uri("http://localhost:8081/api/v1/downloads/getDownloads/{userId}", userId)
                 .retrieve()
@@ -114,4 +118,13 @@ public class BookServiceImpl implements BookService {
     }
 
 
+    public Long getUserId(){
+        Long userId=webClient.get()
+                .uri("http://localhost:7070/api/v1/auth/get-user-id")
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Long>() {
+                })
+                .block();
+        return userId;
+    }
 }

@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface DownloadRepository extends JpaRepository<Download, Long> {
 
-    List<Download> findAllByUserId(String userId);
+    List<Download> findAllByUserId(Long userId);
 }

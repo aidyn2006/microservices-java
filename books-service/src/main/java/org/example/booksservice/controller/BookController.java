@@ -22,8 +22,8 @@ public class BookController {
     }
 
     @GetMapping("/get-by-title/{title}")
-    public BookResponse getBookByTitle(@PathVariable("title") String title, @RequestParam("userId") String userId) {
-        return bookService.getBookWithTitle(title, userId);
+    public BookResponse getBookByTitle(@PathVariable("title") String title) {
+        return bookService.getBookWithTitle(title);
     }
 
 
@@ -36,12 +36,9 @@ public class BookController {
     public BookResponse getBookByGenre(@PathVariable("genre") String genre) {
         return bookService.getBookWithGenre(genre);
     }
-    @GetMapping("/downloadedBooks/{userId}")
-    public List<BookResponse> getDownloadedBooks(@PathVariable String userId) {
+    @GetMapping("/downloadedBooks")
+    public List<BookResponse> getDownloadedBooks() {
+        Long userId = bookService.getUserId();
         return bookService.getDownloadedBooks(userId);
     }
-
-
-
-
 }

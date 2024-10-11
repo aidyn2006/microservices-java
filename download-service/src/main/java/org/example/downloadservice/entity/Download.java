@@ -25,7 +25,7 @@ public class Download {
     @Column(name ="book_id")
     Long bookId;
     @Column(name = "user_id")
-    String userId;
+    Long userId;
 
     @CreationTimestamp
     LocalDateTime createdAt;

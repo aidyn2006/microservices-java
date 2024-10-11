@@ -8,8 +8,13 @@ import java.util.List;
 
 public interface BookService {
     Book createBook(BookDto bookDto);
-    BookResponse getBookWithTitle(String title, String userId);
+
+    BookResponse getBookWithTitle(String title);
+
     BookResponse getBookWithAuthor(String author);
+
     BookResponse getBookWithGenre(String genre);
-    List<BookResponse> getDownloadedBooks(String userId);
+
+    List<BookResponse> getDownloadedBooks(Long userId);
+    Long getUserId();
 }

@@ -10,6 +10,7 @@ public interface AuthService {
     String confirmRegistration(String email, String verificationCode) throws Exception;
     String confirmPassword(String email, String verificationCode, String newPassword) throws Exception;
     String changePassword(String email);
+    Long getUserIdFromContext();
 
 
 }

@@ -5,6 +5,8 @@ import org.example.authservice.dto.request.UserDtoLog;
 import org.example.authservice.dto.request.UserDtoReg;
 import org.example.authservice.dto.response.AuthResponse;
 import org.example.authservice.service.AuthService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,6 +39,16 @@ public class UserController {
     public String changePassword(@RequestParam String email, @RequestParam String verificationCode, @RequestParam String newPassword) throws Exception {
         return authService.confirmPassword(email,verificationCode,newPassword);
     }
+
+    @GetMapping("/get-user-id")
+    public ResponseEntity<Long> getUserId() {
+        Long userId = authService.getUserIdFromContext();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Возвращает 401, если пользователь не аутентифицирован
+        }
+        return ResponseEntity.ok(userId);
+    }
+
 
 
 }

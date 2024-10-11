@@ -16,7 +16,7 @@ public class DownloadServiceImpl implements DownloadService {
 
     private final DownloadRepository downloadRepository;
 
-    public void saveDownload(String userId, Long bookId) {
+    public void saveDownload(Long userId, Long bookId) {
         Download download= Download.builder()
                 .bookId(bookId)
                 .userId(userId)
@@ -24,7 +24,7 @@ public class DownloadServiceImpl implements DownloadService {
         downloadRepository.save(download);
     }
 
-    public List<Long> getDownloadsByUserId(String userId) {
+    public List<Long> getDownloadsByUserId(Long userId) {
         return downloadRepository.findAllByUserId(userId)
                 .stream()
                 .map(Download::getBookId)
