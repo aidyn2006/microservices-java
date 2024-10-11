@@ -90,7 +90,6 @@ public class BookServiceImpl implements BookService {
                 .pdfUrl(book.getPdfUrl())
                 .build();
     }
-
     private void saveDownload(Long bookId,String userId){
         webClient.post()
                 .uri("http://localhost:8081/api/v1/downloads/{bookId}?userId={userId}",bookId,userId)
