@@ -16,7 +16,7 @@ public class WishListServiceImpl implements WishListService {
 
     private final WishListRepository wishListRepository;
 
-    public void saveDownload(Long userId, Long bookId) {
+    public void saveWishList(Long userId, Long bookId) {
         WishList wishList= WishList.builder()
                 .bookId(bookId)
                 .userId(userId)
@@ -24,12 +24,13 @@ public class WishListServiceImpl implements WishListService {
         wishListRepository.save(wishList);
     }
 
-    public List<Long> getDownloadsByUserId(Long userId) {
+    public List<Long> getWishListByUserId(Long userId) {
         return wishListRepository.findAllByUserId(userId)
                 .stream()
                 .map(WishList::getBookId)
                 .collect(Collectors.toList());
     }
+
 
 
 }

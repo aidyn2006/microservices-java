@@ -41,4 +41,15 @@ public class BookController {
         Long userId = bookService.getUserId();
         return bookService.getDownloadedBooks(userId);
     }
+    @PostMapping("/add-to-wishlist")
+    public BookResponse addWishList(@RequestParam Long bookId){
+        return bookService.saveWishList(bookId);
+    }
+
+    @GetMapping("/wishlists")
+    public List<BookResponse> getWishListBooks() {
+        Long userId = bookService.getUserId();
+        return bookService.getWishListBooks(userId);
+    }
+
 }

@@ -95,12 +95,29 @@ public class BookServiceImpl implements BookService {
                 .retrieve()
                 .bodyToMono(Void.class)
                 .doOnError(error -> {
-                    // Логирование или обработка ошибки
                     System.out.println("Ошибка при сохранении загрузки: " + error.getMessage());
                 })
                 .subscribe();
 
     }
+    public BookResponse saveWishList(Long bookId){
+        webClient.post()
+                .uri("http://localhost:8083/api/v1/wishlist/{bookId}/{userId}",bookId,getUserId())
+                .retrieve()
+                .bodyToMono(BookResponse.class)
+                .subscribe();
+        return null;
+    }
+
+    public List<BookResponse> getWishListBooks(Long userId) {
+        List<Long> downloadedBookIds = webClient.get()
+                .uri("http://localhost:8083/api/v1/wishlist/get-wish/{userId}", userId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Long>>() {})
+                .block();
+        return getBooksByIds(downloadedBookIds);
+    }
+
     public List<BookResponse> getDownloadedBooks(Long userId) {
         List<Long> downloadedBookIds = webClient.get()
                 .uri("http://localhost:8081/api/v1/downloads/getDownloads/{userId}", userId)

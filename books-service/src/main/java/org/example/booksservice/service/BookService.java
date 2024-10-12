@@ -17,4 +17,6 @@ public interface BookService {
 
     List<BookResponse> getDownloadedBooks(Long userId);
     Long getUserId();
+    BookResponse saveWishList(Long bookId);
+    List<BookResponse> getWishListBooks(Long userId);
 }
