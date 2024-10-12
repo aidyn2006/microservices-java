@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new Exception("Пользователь не найден!"));
 
         if (passwordEncoder.matches(request.getPassword(), user.getPassword()) && user.getEmail().equals(request.getEmail())) {
-            var jwtToken = jwtService.generateToken(user);
+            var jwtToken = jwtService.generateToken(user.getUsername());
             return AuthResponse.builder()
                     .accessToken(jwtToken)
                     .build();

@@ -30,24 +30,34 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
+
         jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
-        System.out.println(username);
+        try {
+            username = jwtService.getUsername(jwt);
+            System.out.println("Username из токена: " + username);
+        } catch (Exception e) {
+            System.out.println("Ошибка извлечения username: " + e.getMessage());
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetailsService = this.userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-
-            if (jwtService.isTokenValid(jwt, userDetailsService)) {
+            if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken tokenAuth = new UsernamePasswordAuthenticationToken(
-                        userDetailsService, null, userDetailsService.getAuthorities()
+                        userDetails, null, userDetails.getAuthorities()
                 );
 
                 tokenAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(tokenAuth);
+            } else {
+                System.out.println("Недействительный токен для пользователя: " + username);
             }
         }
         filterChain.doFilter(request, response);

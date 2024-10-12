@@ -44,7 +44,7 @@ public class UserController {
     public ResponseEntity<Long> getUserId() {
         Long userId = authService.getUserIdFromContext();
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Возвращает 401, если пользователь не аутентифицирован
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(userId);
     }
