@@ -5,6 +5,8 @@ import com.cloudinary.utils.ObjectUtils;
 import lombok.SneakyThrows;
 import org.example.booksservice.dto.request.BookDto;
 import org.example.booksservice.dto.response.BookResponse;
+import org.example.booksservice.dto.response.BookResponseWithReview;
+import org.example.booksservice.dto.response.ReviewRequest;
 import org.example.booksservice.entity.Book;
 import org.example.booksservice.repository.BookRepository;
 import org.example.booksservice.service.BookService;
@@ -62,13 +64,21 @@ public class BookServiceImpl implements BookService {
         return bookRepository.save(newBook);
     }
 
-    public BookResponse getBookWithTitle(String title) {
+    public BookResponseWithReview getBookWithTitle(String title) {
         Book book = bookRepository.findByTitle(title)
                 .orElseThrow(() -> new IllegalArgumentException("Книга с таким названием не найдена"));
 
         saveDownload(book.getId(), getUserId());
-        return mapBookToResponse(book);
+
+        BookResponse bookResponse = mapBookToResponse(book);
+        ReviewRequest review = getReview(book.getId());
+
+        return BookResponseWithReview.builder()
+                .bookResponse(bookResponse)
+                .review(review)
+                .build();
     }
+
 
     public BookResponse getBookWithAuthor(String author) {
         Book book = bookRepository.findAllByAuthor(author)
@@ -178,6 +188,20 @@ public class BookServiceImpl implements BookService {
                 .bodyToMono(String.class)
                 .subscribe();
     }
+
+
+
+
+    public ReviewRequest getReview(Long bookId) {
+        return webClient.get()
+                .uri("http://localhost:8181/api/v1/review/get-review/{bookId}", bookId)
+                .retrieve()
+                .bodyToMono(ReviewRequest.class)
+                .block();  // Блокирует выполнение до получения результата
+    }
+
+
+
 
 
 }

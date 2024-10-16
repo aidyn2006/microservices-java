@@ -3,6 +3,7 @@ package org.example.booksservice.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.booksservice.dto.request.BookDto;
 import org.example.booksservice.dto.response.BookResponse;
+import org.example.booksservice.dto.response.BookResponseWithReview;
 import org.example.booksservice.entity.Book;
 import org.example.booksservice.service.BookService;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class BookController {
     }
 
     @GetMapping("/get-by-title/{title}")
-    public BookResponse getBookByTitle(@PathVariable("title") String title) {
+    public BookResponseWithReview getBookByTitle(@PathVariable("title") String title) {
         return bookService.getBookWithTitle(title);
     }
 
