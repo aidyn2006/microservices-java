@@ -49,6 +49,10 @@ public class UserController {
         return ResponseEntity.ok(userId);
     }
 
-
+    @PostMapping("/send-message")
+    public String sendMessage(){
+        authService.sendMessageToEmail();
+        return "Message sended";
+    }
 
 }

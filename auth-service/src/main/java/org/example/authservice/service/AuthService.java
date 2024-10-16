@@ -11,6 +11,7 @@ public interface AuthService {
     String confirmPassword(String email, String verificationCode, String newPassword) throws Exception;
     String changePassword(String email);
     Long getUserIdFromContext();
+    void sendMessageToEmail();
 
 
 }

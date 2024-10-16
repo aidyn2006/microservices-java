@@ -52,4 +52,11 @@ public class BookController {
         return bookService.getWishListBooks(userId);
     }
 
+    @PostMapping("/subscribe-to")
+    public String subscribeToGenre(@RequestParam String genre){
+        bookService.messageAboutSubscription(genre);
+        return "You are sucsessfully subscribed";
+    }
+
+
 }

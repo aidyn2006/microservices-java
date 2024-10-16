@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
 import java.util.Date;
 
 @Service
@@ -17,6 +19,10 @@ public class JwtService {
     @Value(value = "${valid}")
     private Long VALID;
 
+    private Key getSigningKey() {
+        return new SecretKeySpec(SECRET.getBytes(), SignatureAlgorithm.HS256.getJcaName());
+    }
+
     public String generateToken(String username) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + VALID);
@@ -25,22 +31,21 @@ public class JwtService {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(validity)
-                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .signWith(getSigningKey())
                 .compact();
     }
 
     public String getUsername(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET)
+                .setSigningKey(getSigningKey())
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
 
-
     public boolean isTokenExpired(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET)
+                .setSigningKey(getSigningKey())
                 .parseClaimsJws(token)
                 .getBody()
                 .getExpiration()

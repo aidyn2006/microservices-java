@@ -10,18 +10,19 @@ import org.example.authservice.security.jwt.JwtService;
 import org.example.authservice.service.AuthService;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+
+import static reactor.core.publisher.Mono.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final JavaMailSender mailSender;
+    private final WebClient webClient;
 
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final Map<String, User> pendingUsers = new HashMap<>();
@@ -72,6 +74,22 @@ public class AuthServiceImpl implements AuthService {
 
         pendingUsers.put(register.getEmail(), user);
         verificationCodes.put(register.getEmail(), verificationCode);
+
+        UserDtoReg userProfileDto = UserDtoReg.builder()
+                .userId(register.getUserId())
+                .firstname(register.getFirstname())
+                .lastname(register.getLastname())
+                .phoneNumber(register.getPhoneNumber())
+                .build();
+
+        webClient.post()
+                .uri("http://localhost:8082/api/v1/user-profile/create-user-profile")
+                .body(Mono.just(userProfileDto), UserDtoReg.class)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .subscribe();
+
+
 
         return "Код подтверждения был отправлен на вашу почту. Пожалуйста, подтвердите регистрацию.";
     }
@@ -146,7 +164,20 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
+    public void sendMessageToEmail() {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("nurlan.aydin06nnn@mail.ru");
+        message.setTo(getEmailByUserId());
+        message.setSubject("Новая книга");
+        message.setText("Хей привет! Наш читатель, новые книги уже на сайте!");
+        mailSender.send(message);
+    }
 
+    private String getEmailByUserId(){
+        User user=userRepository.findById(getUserIdFromContext())
+                .orElseThrow(()->new RuntimeException("Not found"));
 
+        return user.getEmail();
+    }
 
 }

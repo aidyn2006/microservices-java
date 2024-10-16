@@ -54,6 +54,11 @@ public class BookServiceImpl implements BookService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+
+        String genre=getSubscribers();
+        if (genre.equalsIgnoreCase(newBook.getGenre())){
+            sendMessage();
+        }
         return bookRepository.save(newBook);
     }
 
@@ -144,4 +149,35 @@ public class BookServiceImpl implements BookService {
                 .block();
         return userId;
     }
+
+    public void messageAboutSubscription(String genre) {
+        webClient.post()
+                .uri("http://localhost:8888/api/v1/subscription/{genre}/{userId}", genre, getUserId())
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnError(error -> {
+                    System.err.println("Error during subscription: " + error.getMessage());
+                })
+                .subscribe(response -> {
+                    System.out.println("Subscription response: " + response);
+                });
+    }
+
+    public String getSubscribers() {
+        return webClient.get()
+                .uri("http://localhost:8888/api/v1/subscription/{userId}", getUserId())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
+
+    public void sendMessage(){
+        webClient.post()
+                .uri("http://localhost:7070/api/v1/auth/send-message")
+                .retrieve()
+                .bodyToMono(String.class)
+                .subscribe();
+    }
+
+
 }

@@ -19,4 +19,5 @@ public interface BookService {
     Long getUserId();
     BookResponse saveWishList(Long bookId);
     List<BookResponse> getWishListBooks(Long userId);
+    void messageAboutSubscription(String genre);
 }
