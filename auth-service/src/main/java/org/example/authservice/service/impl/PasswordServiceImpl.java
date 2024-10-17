@@ -1,6 +1,7 @@
 package org.example.authservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.example.authservice.dto.request.PasswordChangeRequest;
 import org.example.authservice.entity.User;
 import org.example.authservice.exception.handling.InvalidVerificationCodeException;
 import org.example.authservice.exception.handling.UserNotFoundException;
@@ -41,17 +42,17 @@ public class PasswordServiceImpl implements PasswordService {
     }
 
     @Transactional
-    public String confirmPassword(String email, String verificationCode, String newPassword) {
-        String savedCode=passwordChanges.get(email);
-        if(savedCode==null || !savedCode.equals(verificationCode)){
+    public String confirmPassword(PasswordChangeRequest request) {
+        String savedCode=passwordChanges.get(request.getEmail());
+        if(savedCode==null || !savedCode.equals(request.getVerificationCode())){
             throw new InvalidVerificationCodeException("Неверный код подтверждения для изменения пароля.");
         }
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден."));
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        passwordChanges.remove(email);
+        passwordChanges.remove(request.getEmail());
         return "Пороль успешно изменен";
     }
 

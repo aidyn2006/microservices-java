@@ -17,7 +17,7 @@ public class EmailController {
     @PostMapping("/send-message")
     public String sendMessage() throws Exception {
         emailService.sendMessageToEmail();
-        return "Message sended";
+        return "Message sent";
     }
 
 }

@@ -19,17 +19,24 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public String register(@RequestBody UserDtoReg reg) throws Exception {
-       return authService.registration(reg);
+    public ResponseEntity<String> register(@RequestBody UserDtoReg reg) {
+        String message = authService.registration(reg);
+        return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
+
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody UserDtoLog log) throws Exception {
-        return authService.login(log);
+    public ResponseEntity<AuthResponse> login(@RequestBody UserDtoLog log) {
+        AuthResponse response = authService.login(log);
+        return ResponseEntity.ok(response);
     }
+
     @PostMapping("/confirm")
-    public String confirmRegistration(@RequestParam String email, @RequestParam String verificationCode) throws Exception {
-        return authService.confirmRegistration(email, verificationCode);
+    public ResponseEntity<String> confirmRegistration(@RequestParam String email,
+                                                      @RequestParam String verificationCode) {
+        String message = authService.confirmRegistration(email, verificationCode);
+        return ResponseEntity.ok(message);
     }
+
     @GetMapping("/get-user-id")
     public ResponseEntity<Long> getUserId() throws Exception {
         Long userId = userService.getUserIdFromContext();
