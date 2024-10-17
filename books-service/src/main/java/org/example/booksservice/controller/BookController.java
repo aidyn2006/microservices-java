@@ -22,42 +22,6 @@ public class BookController {
         return bookService.createBook(bookDto);
     }
 
-    @GetMapping("/get-by-title/{title}")
-    public BookResponseWithReview getBookByTitle(@PathVariable("title") String title) {
-        return bookService.getBookWithTitle(title);
-    }
-
-
-    @GetMapping("/get-by-author/{author}")
-    public BookResponse getBookByAuthor(@PathVariable("author") String author) {
-        return bookService.getBookWithAuthor(author);
-    }
-
-    @GetMapping("/get-by-genre/{genre}")
-    public BookResponse getBookByGenre(@PathVariable("genre") String genre) {
-        return bookService.getBookWithGenre(genre);
-    }
-    @GetMapping("/downloadedBooks")
-    public List<BookResponse> getDownloadedBooks() {
-        Long userId = bookService.getUserId();
-        return bookService.getDownloadedBooks(userId);
-    }
-    @PostMapping("/add-to-wishlist")
-    public BookResponse addWishList(@RequestParam Long bookId){
-        return bookService.saveWishList(bookId);
-    }
-
-    @GetMapping("/wishlists")
-    public List<BookResponse> getWishListBooks() {
-        Long userId = bookService.getUserId();
-        return bookService.getWishListBooks(userId);
-    }
-
-    @PostMapping("/subscribe-to")
-    public String subscribeToGenre(@RequestParam String genre){
-        bookService.messageAboutSubscription(genre);
-        return "You are sucsessfully subscribed";
-    }
 
 
 }

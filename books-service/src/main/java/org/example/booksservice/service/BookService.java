@@ -10,14 +10,6 @@ import java.util.List;
 public interface BookService {
     Book createBook(BookDto bookDto);
 
-    BookResponseWithReview getBookWithTitle(String title);
-    BookResponse getBookWithAuthor(String author);
-
-    BookResponse getBookWithGenre(String genre);
-
-    List<BookResponse> getDownloadedBooks(Long userId);
-    Long getUserId();
-    BookResponse saveWishList(Long bookId);
-    List<BookResponse> getWishListBooks(Long userId);
-    void messageAboutSubscription(String genre);
+    List<BookResponse> getBooksByIds(List<Long> bookIds);
+    BookResponse mapBookToResponse(Book book);
 }

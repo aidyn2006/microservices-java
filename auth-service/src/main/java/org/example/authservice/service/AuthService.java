@@ -5,13 +5,10 @@ import org.example.authservice.dto.request.UserDtoReg;
 import org.example.authservice.dto.response.AuthResponse;
 
 public interface AuthService {
-    AuthResponse login(UserDtoLog userDtoLog) throws Exception;
-    String registration(UserDtoReg register) throws Exception;
-    String confirmRegistration(String email, String verificationCode) throws Exception;
-    String confirmPassword(String email, String verificationCode, String newPassword) throws Exception;
-    String changePassword(String email);
-    Long getUserIdFromContext();
-    void sendMessageToEmail();
+    AuthResponse login(UserDtoLog userDtoLog);
+    String registration(UserDtoReg register);
+    String confirmRegistration(String email, String verificationCode);
+
 
 
 }

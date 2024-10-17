@@ -5,24 +5,19 @@ import org.example.authservice.dto.request.UserDtoLog;
 import org.example.authservice.dto.request.UserDtoReg;
 import org.example.authservice.dto.response.AuthResponse;
 import org.example.authservice.entity.User;
+import org.example.authservice.exception.handling.*;
 import org.example.authservice.repository.UserRepository;
 import org.example.authservice.security.jwt.JwtService;
 import org.example.authservice.service.AuthService;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.example.authservice.service.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
-
-import static reactor.core.publisher.Mono.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,18 +26,14 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final JavaMailSender mailSender;
-    private final WebClient webClient;
-
+    private final EmailService emailService;
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final Map<String, User> pendingUsers = new HashMap<>();
 
-    private final Map<String,String> passwordChanges=new HashMap<>();
-
     @Override
-    public AuthResponse login(UserDtoLog request) throws Exception {
+    public AuthResponse login(UserDtoLog request){
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new Exception("Пользователь не найден!"));
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден!"));
 
         if (passwordEncoder.matches(request.getPassword(), user.getPassword()) && user.getEmail().equals(request.getEmail())) {
             var jwtToken = jwtService.generateToken(user.getUsername());
@@ -50,20 +41,31 @@ public class AuthServiceImpl implements AuthService {
                     .accessToken(jwtToken)
                     .build();
         } else {
-            throw new Exception("Данные введены неправильно!");
+            throw new IncorrectDataException("Данные введены неправильно!");
         }
     }
     @Transactional
     @Override
-    public String registration(UserDtoReg register) throws Exception {
-        if (userRepository.findByEmail(register.getEmail()).isPresent()) {
-            throw new Exception("Пользователь с email: " + register.getEmail() + " уже существует!");
+    public String registration(UserDtoReg register){
+        if (isUserExists(register.getEmail())) {
+            throw new AlreadyExistException("Пользователь с email: " + register.getEmail() + " уже существует!");
         }
 
-        String verificationCode = generateVerificationCode();
-        sendVerificationEmail(register.getEmail(), verificationCode);
+        User user = createUser(register);
+        String verificationCode = emailService.generateVerificationCode();
+        emailService.sendVerificationEmail(register.getEmail(), verificationCode);
 
-        User user = User.builder()
+        storePendingUser(register.getEmail(), user, verificationCode);
+
+        return "Код подтверждения был отправлен на вашу почту.";
+    }
+
+    private boolean isUserExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    private User createUser(UserDtoReg register) {
+        return User.builder()
                 .username(register.getUsername())
                 .phoneNumber(register.getPhoneNumber())
                 .createdAt(LocalDateTime.now())
@@ -71,38 +73,24 @@ public class AuthServiceImpl implements AuthService {
                 .role(register.getRole())
                 .email(register.getEmail())
                 .build();
-
-        pendingUsers.put(register.getEmail(), user);
-        verificationCodes.put(register.getEmail(), verificationCode);
-
-        UserDtoReg userProfileDto = UserDtoReg.builder()
-                .userId(register.getUserId())
-                .firstname(register.getFirstname())
-                .lastname(register.getLastname())
-                .phoneNumber(register.getPhoneNumber())
-                .build();
-
-        webClient.post()
-                .uri("http://localhost:8082/api/v1/user-profile/create-user-profile")
-                .body(Mono.just(userProfileDto), UserDtoReg.class)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .subscribe();
-
-
-
-        return "Код подтверждения был отправлен на вашу почту. Пожалуйста, подтвердите регистрацию.";
     }
 
+    private void storePendingUser(String email, User user, String verificationCode) {
+        pendingUsers.put(email, user);
+        verificationCodes.put(email, verificationCode);
+    }
+
+
     @Override
-    public String confirmRegistration(String email, String verificationCode) throws Exception {
+    @Transactional
+    public String confirmRegistration(String email, String verificationCode) {
         Optional<User> pendingUser = Optional.ofNullable(pendingUsers.get(email));
         if (!pendingUser.isPresent()) {
-            throw new Exception("Пользователь с таким email не найден или уже подтвержден.");
+            throw new NotFoundException("Пользователь с таким email не найден или уже подтвержден.");
         }
         String savedCode = verificationCodes.get(email);
         if (savedCode == null || !savedCode.equals(verificationCode)) {
-            throw new Exception("Неверный код подтверждения.");
+            throw new InvalidVerificationCodeException("Неверный код подтверждения.");
         }
 
         userRepository.save(pendingUser.get());
@@ -111,73 +99,6 @@ public class AuthServiceImpl implements AuthService {
         verificationCodes.remove(email);
 
         return "Ваш аккаунт успешно подтвержден!";
-    }
-
-    private String generateVerificationCode() {
-        Random random = new Random();
-        int code = random.nextInt(89999) + 10000;
-        return String.valueOf(code);
-    }
-
-    private void sendVerificationEmail(String email, String code) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("nurlan.aydin06nnn@mail.ru");
-        message.setTo(email);
-        message.setSubject("Подтверждение регистрации");
-        message.setText("Ваш код подтверждения: " + code);
-        mailSender.send(message);
-    }
-    public String changePassword(String email){
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (!userOptional.isPresent()) {
-            throw new RuntimeException("Такой пользователь нет в нашей базе данных");
-        }
-        else {
-            String verificationCode = generateVerificationCode();
-            sendVerificationEmail(email, verificationCode);
-
-            passwordChanges.put(email, verificationCode);
-
-            return "Код подтверждения для изменения пароля был отправлен на вашу почту.";
-        }
-    }
-
-    public String confirmPassword(String email, String verificationCode, String newPassword) throws Exception {
-        String savedCode=passwordChanges.get(email);
-        if(savedCode==null || !savedCode.equals(verificationCode)){
-            throw new Exception("Неверный код подтверждения для изменения пароля.");
-        }
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден."));
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-
-        passwordChanges.remove(email);
-        return "Пороль успешно изменен";
-    }
-
-
-    public Long getUserIdFromContext() {
-        User user=userRepository.findByEmail("houseqazaqstan1@gmail.com")
-                .orElseThrow(()->new RuntimeException("Табылмады брат"));
-        return user.getId();
-
-    }
-
-    public void sendMessageToEmail() {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("nurlan.aydin06nnn@mail.ru");
-        message.setTo(getEmailByUserId());
-        message.setSubject("Новая книга");
-        message.setText("Хей привет! Наш читатель, новые книги уже на сайте!");
-        mailSender.send(message);
-    }
-
-    private String getEmailByUserId(){
-        User user=userRepository.findById(getUserIdFromContext())
-                .orElseThrow(()->new RuntimeException("Not found"));
-
-        return user.getEmail();
     }
 
 }
