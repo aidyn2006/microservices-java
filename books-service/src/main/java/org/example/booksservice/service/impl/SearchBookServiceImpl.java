@@ -6,10 +6,7 @@ import org.example.booksservice.dto.response.BookResponseWithReview;
 import org.example.booksservice.dto.response.ReviewRequest;
 import org.example.booksservice.entity.Book;
 import org.example.booksservice.repository.BookRepository;
-import org.example.booksservice.service.BookService;
-import org.example.booksservice.service.DownloadService;
-import org.example.booksservice.service.IdService;
-import org.example.booksservice.service.SearchBookService;
+import org.example.booksservice.service.*;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +14,8 @@ import org.springframework.stereotype.Service;
 public class SearchBookServiceImpl implements SearchBookService {
 
     private final BookRepository bookRepository;
-    private final IdService idService;
+    private final UserService userService;
+    private final ReviewService reviewService;
     private final DownloadService downloadService;
     private final BookService bookService;
 
@@ -25,10 +23,10 @@ public class SearchBookServiceImpl implements SearchBookService {
         Book book = bookRepository.findByTitle(title)
                 .orElseThrow(() -> new IllegalArgumentException("Книга с таким названием не найдена"));
 
-        downloadService.saveDownload(book.getId(), idService.getUserId());
+        downloadService.saveDownload(book.getId(), userService.getUserId());
 
         BookResponse bookResponse = bookService.mapBookToResponse(book);
-        ReviewRequest review = idService.getReview(book.getId());
+        ReviewRequest review = reviewService.getReview(book.getId());
 
         return BookResponseWithReview.builder()
                 .bookResponse(bookResponse)

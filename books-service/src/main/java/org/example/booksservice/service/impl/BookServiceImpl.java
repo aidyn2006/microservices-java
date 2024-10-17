@@ -9,7 +9,8 @@ import org.example.booksservice.dto.response.BookResponse;
 import org.example.booksservice.entity.Book;
 import org.example.booksservice.repository.BookRepository;
 import org.example.booksservice.service.BookService;
-import org.example.booksservice.service.IdService;
+import org.example.booksservice.service.NotificationService;
+import org.example.booksservice.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,8 @@ public class BookServiceImpl implements BookService {
 
     private final Cloudinary cloudinary;
     private final BookRepository bookRepository;
-    private final IdService idService;
+    private final NotificationService notificationService;
+    private final UserService userService;
 
     @SneakyThrows
     @Transactional
@@ -50,9 +52,9 @@ public class BookServiceImpl implements BookService {
                 .build();
 
 
-        String genre= idService.getSubscribers();
+        String genre= notificationService.getSubscribers();
         if (genre.equalsIgnoreCase(newBook.getGenre())){
-            idService.sendMessage();
+            userService.sendMessage();
         }
         return bookRepository.save(newBook);
     }

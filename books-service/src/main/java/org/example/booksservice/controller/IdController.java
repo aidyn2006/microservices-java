@@ -2,7 +2,9 @@ package org.example.booksservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.booksservice.dto.response.BookResponse;
-import org.example.booksservice.service.IdService;
+import org.example.booksservice.service.UserService;
+import org.example.booksservice.service.WishListService;
+import org.example.booksservice.service.NotificationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,22 +13,24 @@ import java.util.List;
 @RequestMapping("/api/v1/id")
 @RequiredArgsConstructor
 public class IdController {
-    private final IdService idService;
+    private final UserService userService;
+    private final WishListService wishListService;
+    private final NotificationService notificationService;
 
     @PostMapping("/add-to-wishlist")
     public BookResponse addWishList(@RequestParam Long bookId){
-        return idService.saveWishList(bookId);
+        return wishListService.saveWishList(bookId);
     }
 
     @GetMapping("/wishlists")
     public List<BookResponse> getWishListBooks() {
-        Long userId = idService.getUserId();
-        return idService.getWishListBooks(userId);
+        Long userId = userService.getUserId();
+        return wishListService.getWishListBooks(userId);
     }
 
     @PostMapping("/subscribe-to")
     public String subscribeToGenre(@RequestParam String genre){
-        idService.messageAboutSubscription(genre);
+        notificationService.messageAboutSubscription(genre);
         return "You are sucsessfully subscribed";
     }
 }

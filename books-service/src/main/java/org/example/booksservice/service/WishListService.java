@@ -5,13 +5,9 @@ import org.example.booksservice.dto.response.ReviewRequest;
 
 import java.util.List;
 
-public interface IdService {
-    Long getUserId();
+public interface WishListService {
     BookResponse saveWishList(Long bookId);
     List<BookResponse> getWishListBooks(Long userId);
-    ReviewRequest getReview(Long bookId);
-    void messageAboutSubscription(String genre);
-    String getSubscribers();
-    void sendMessage();
+
 
 }
