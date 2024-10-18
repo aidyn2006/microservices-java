@@ -52,8 +52,9 @@ public class BookServiceImpl implements BookService {
                 .build();
 
 
-        String genre= notificationService.getSubscribers();
-        if (genre.equalsIgnoreCase(newBook.getGenre())){
+        List<String> genre = notificationService.getSubscribers();
+        genre.forEach(System.out::println);
+        if (genre.contains(newBook.getGenre())){
             userService.sendMessage();
         }
         return bookRepository.save(newBook);

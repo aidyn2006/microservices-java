@@ -24,7 +24,9 @@ public class SecurityConfig {
 
     };
     public String[] PERMIT_ALL={
-            "/api/v1/auth/**"
+            "/api/v1/auth/**",
+            "/api/v1/email/**",
+            "/api/v1/password/**",
     };
 
 

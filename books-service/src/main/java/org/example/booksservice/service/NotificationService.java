@@ -1,6 +1,8 @@
 package org.example.booksservice.service;
 
+import java.util.List;
+
 public interface NotificationService  {
     void messageAboutSubscription(String genre);
-    String getSubscribers();
+    List<String> getSubscribers();
 }

@@ -2,10 +2,12 @@ package org.example.booksservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.booksservice.service.UserService;
-import org.example.booksservice.service.WishListService;
 import org.example.booksservice.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +27,14 @@ public class NotificationServiceImpl implements NotificationService {
                     System.out.println("Subscription response: " + response);
                 });
     }
-    public String getSubscribers() {
-        return webClient.get()
+    public List<String> getSubscribers() {
+        String response = webClient.get()
                 .uri("http://localhost:8888/api/v1/subscription/{userId}", userService.getUserId())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+
+        return Collections.singletonList(response.replaceAll("[\\[\\]\"]", ""));
     }
+
 }
