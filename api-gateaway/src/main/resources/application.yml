@@ -1,0 +1,14 @@
+#server:
+#  port: 1234
+#
+#spring:
+#  main:
+#    web-application-type: reactive
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: book-service
+#          uri: http://localhost:8080
+#          predicates:
+#            - Path=/api/v1/books/**
+#        - id: download

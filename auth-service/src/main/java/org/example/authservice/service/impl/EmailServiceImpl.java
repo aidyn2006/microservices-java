@@ -12,7 +12,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-public class EmailServiceImpl implements EmailService {
+public class EmailServiceImpl {
 
     private final JavaMailSender mailSender;
     private final UserService userService;

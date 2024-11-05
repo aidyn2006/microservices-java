@@ -10,7 +10,11 @@ import org.example.authservice.exception.handling.*;
 import org.example.authservice.repository.UserRepository;
 import org.example.authservice.security.jwt.JwtService;
 import org.example.authservice.service.AuthService;
+import org.example.authservice.service.AuthenticationStrategy;
 import org.example.authservice.service.EmailService;
+import org.example.authservice.service.UserFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,36 +22,41 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
     private final EmailService emailService;
     private final WebClient webClient;
+    private final UserFactory userFactory;
+
 
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final Map<String, User> pendingUsers = new HashMap<>();
     private final Map<String, UserProfileDto> storePendingUserProfile = new HashMap<>();
 
-    @Override
-    public AuthResponse login(UserDtoLog request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден!"));
+    private final Map<String, AuthenticationStrategy> strategies = new HashMap<>();
 
-        if (passwordEncoder.matches(request.getPassword(), user.getPassword()) && user.getEmail().equals(request.getEmail())) {
-            var jwtToken = jwtService.generateToken(user.getUsername());
-            return AuthResponse.builder()
-                    .accessToken(jwtToken)
-                    .build();
-        } else {
-            throw new IncorrectDataException("Данные введены неправильно!");
+    @Autowired
+    public AuthServiceImpl(List<AuthenticationStrategy> strategyList, UserRepository userRepository,  EmailService emailService, WebClient webClient, UserFactory userFactory) {
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.webClient = webClient;
+        this.userFactory = userFactory;
+        for (AuthenticationStrategy strategy : strategyList) {
+            if (strategy instanceof EmailAuthenticationStrategy) {
+                strategies.put("email", strategy);
+            }
         }
+    }
+
+    public AuthResponse login(UserDtoLog log) {
+        AuthenticationStrategy strategy = strategies.get("email");
+        return strategy.authenticate(log);
     }
 
     @Transactional
@@ -74,14 +83,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private User createUser(UserDtoReg register) {
-        return User.builder()
-                .username(register.getUsername())
-                .phoneNumber(register.getPhoneNumber())
-                .createdAt(LocalDateTime.now())
-                .password(passwordEncoder.encode(register.getPassword()))
-                .role(register.getRole())
-                .email(register.getEmail())
-                .build();
+        return userFactory.createUser(register);
     }
 
     public UserProfileDto createProfile(UserDtoReg userDtoReg) {
